@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@chakra-ui/hooks": "^2.2.1",
+    "@chakra-ui/react": "^2.8.1"
+  }
+}
