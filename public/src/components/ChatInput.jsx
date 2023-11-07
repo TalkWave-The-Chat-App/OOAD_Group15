@@ -88,6 +88,7 @@ export default function ChatInput({ handleSendMsg }) {
        {/* Spell check dialog */}
        {showSpellCheckDialog && (
         <SpellCheckDialog>
+          
           <input
             type="text"
             placeholder="Enter text for spell check"
@@ -99,6 +100,7 @@ export default function ChatInput({ handleSendMsg }) {
             <strong>Spell Check Result:</strong>
             <p>{spellCheckResult}</p>
           </div>
+          <button onClick={() => setShowSpellCheckDialog(false)}>Close</button>
 
         </SpellCheckDialog>
       )}
@@ -203,6 +205,15 @@ const Container = styled.div`
 `;
 const SpellCheckDialog = styled.div`
   /* Style for the spell check dialog */
+
+  .close-button {
+    padding: 0.2rem 1rem; /* Adjust the padding to make the button smaller */
+    font-size: 1rem; /* Adjust the font size to make the text smaller */
+    background-color: #9a86f3;
+    border: none;
+    cursor: pointer;
+  }
+  
   background-color: #fff;
   padding: 1rem;
   display: flex;
@@ -215,4 +226,6 @@ const SpellCheckDialog = styled.div`
   z-index: 999; /* Ensure it appears above other elements */
   
   /* ... (add more styles as needed) */
+
+  
 `;
