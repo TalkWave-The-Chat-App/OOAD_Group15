@@ -18,8 +18,8 @@ cd public
 2.	Open the server directory in other terminal using 
 cd server
 3.	Open terminal and write 
-sudo systemctl start mongod (Linux)
-mongod                                      (Windows)
+      sudo systemctl start mongod (Linux)
+      mongod                      (Windows)
 4.	Then, write this command in both terminals of public and server directory
 npm start
 
