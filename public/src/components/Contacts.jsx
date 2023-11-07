@@ -16,8 +16,95 @@ export default function Contacts({ contacts, changeChat,groups }) {
   const [selectedContacts, setSelectedContacts] = useState(new Map());
   const [addedContacts,setAddedContacts]=useState([]);
   const [groupName,setGroupName]=useState("");
-  useEffect(()=>{
-    const fun=async () => {
+  
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [textToTranslate, setTextToTranslate] = useState("");
+  const [translatedText, setTranslatedText] = useState("");
+
+  const Dialog = ({ children, translatedText }) => {
+    return (
+      <div className="dialog">
+        {children}
+        <button className="close-button" onClick={closeDialog}>Close</button>
+        {translatedText && (
+          <div className="translated-text">
+            <strong>Translated Text:</strong>
+            <p>{translatedText}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const openDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+  };
+
+  const translateText = async () => {
+    try {
+      console.log('translateText function called'); 
+      const response = await fetch('https://translate-plus.p.rapidapi.com/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-RapidAPI-Key': 'c09e28d0a2mshd6a6e0dfc7bcad8p106d78jsn18f5991451a3',
+          'X-RapidAPI-Host': 'translate-plus.p.rapidapi.com'
+        },
+        body: JSON.stringify({
+          text: textToTranslate,
+          source: 'en',
+          target: 'hi',
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`API request failed with status: ${response.status}`);
+      
+      }
+  
+      const data = await response.json();
+
+      console.log('Full API response:', data);
+
+      // setTranslatedText(data.translatedText);
+      // if (data.translations && data.translations[0] && data.translations[0].translation) {
+      //   setTranslatedText(data.translations[0].translation);
+      //   console.log('Translated text:', data.translations[0].translation);
+      // } else {
+      //   console.error('API response did not contain valid translation data.');
+      // }
+
+      if (data.translations && data.translations.translation) {
+        setTranslatedText(data.translations.translation);
+        console.log('Translated text:', data.translations.translation);
+      } else {
+        console.error('API response did not contain valid translation data.');
+      }
+  
+
+   //   console.log('Translated text:', data.translatedText);
+  
+      // Close the dialog
+   //   closeDialog();
+    } catch (error) {
+      console.error('Translation error:', error);
+      // Handle the error as needed
+    }
+  };
+  {translatedText && (
+    <div>
+      <strong>Translated Text:</strong>
+      <p>{translatedText}</p>
+    </div>
+  )}
+
+  
+useEffect(()=>{
+  const fun=async () => {
     const data = await JSON.parse(
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
     );
@@ -46,7 +133,8 @@ export default function Contacts({ contacts, changeChat,groups }) {
     setCurrentSelected(undefined);
     changeChat(group);
   }
-  const createGroup=async (event)=>{
+  
+  const createGroup= async (event)=>{
     event.preventDefault();
     const {data}=await axios.post(addGroupRoute,{
       name:groupName,
@@ -79,6 +167,8 @@ export default function Contacts({ contacts, changeChat,groups }) {
             <button onClick={()=>{setIsClicked(!isClicked);
             setAddedContacts([currentUser]);
             }}> + </button>
+            <button onClick={openDialog}> Translate </button>
+
           </div>
           <div className="contacts">
           {
@@ -177,10 +267,35 @@ export default function Contacts({ contacts, changeChat,groups }) {
               <BsFillCheckSquareFill/>
               </button>
             </form>
+          
             </div>
           </div>
         </Container>)
         }
+
+{isDialogOpen && (
+        <Dialog translatedText={translatedText}>
+          <div className="dialog-content">
+            <h2>Translation Dialog</h2>
+            <label htmlFor="textToTranslate">Text to Translate:</label>
+            <input
+              type="text"
+              id="textToTranslate"
+              value={textToTranslate}
+              onChange={(e) => setTextToTranslate(e.target.value)}
+            />
+            <button onClick={translateText}>Submit</button>
+            {translatedText && (
+              <div  className="translated-text" style={{ color: "white" }}>
+                <strong>Translated Text:</strong>
+                <p>{translatedText}</p>
+              </div>
+            )}
+          </div>
+        </Dialog>
+      )}
+
+
         </>
       )}
     </>

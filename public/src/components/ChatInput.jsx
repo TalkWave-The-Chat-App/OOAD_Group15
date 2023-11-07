@@ -4,12 +4,18 @@ import { IoMdSend } from "react-icons/io";
 import styled from "styled-components";
 import Picker from "emoji-picker-react";
 
+
+
+
 export default function ChatInput({ handleSendMsg }) {
   const [msg, setMsg] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [spellCheckInput, setSpellCheckInput] = useState(""); // New state for spell check input
+  const [showSpellCheckDialog, setShowSpellCheckDialog] = useState(false);
   const handleEmojiPickerhideShow = () => {
     setShowEmojiPicker(!showEmojiPicker);
   };
+  const [spellCheckResult, setSpellCheckResult] = useState("");
 
   const handleEmojiClick = (event, emojiObject) => {
     let message = msg;
@@ -24,6 +30,36 @@ export default function ChatInput({ handleSendMsg }) {
       setMsg("");
     }
   };
+  const updateSpellCheckResult = (result) => {
+    setSpellCheckResult(result);
+  };
+
+  const handleSpellCheckRequest = () => {
+    if (spellCheckInput.length > 0) {
+      // Send the API request for spell checking with spellCheckInput
+      fetch("http://127.0.0.1:5000/api", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: spellCheckInput }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("API Response Data:", data);
+
+          // Update the msg state with the corrected text
+          setMsg(data.correctedText);
+          setSpellCheckResult(data.correctedText);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+
+      // Close the spell check dialog
+     // setShowSpellCheckDialog(false);
+    }
+  };
 
   return (
     <Container>
@@ -32,6 +68,8 @@ export default function ChatInput({ handleSendMsg }) {
           <BsEmojiSmileFill onClick={handleEmojiPickerhideShow} />
           {showEmojiPicker && <Picker onEmojiClick={handleEmojiClick} />}
         </div>
+        
+        
       </div>
       <form className="input-container" onSubmit={(event) => sendChat(event)}>
         <input
@@ -40,10 +78,33 @@ export default function ChatInput({ handleSendMsg }) {
           onChange={(e) => setMsg(e.target.value)}
           value={msg}
         />
+        <button onClick={() => setShowSpellCheckDialog(true)}>Spell Check</button>
+        
+
         <button type="submit">
           <IoMdSend />
         </button>
       </form>
+       {/* Spell check dialog */}
+       {showSpellCheckDialog && (
+        <SpellCheckDialog>
+          
+          <input
+            type="text"
+            placeholder="Enter text for spell check"
+            onChange={(e) => setSpellCheckInput(e.target.value)}
+            value={spellCheckInput}
+          />
+          <button onClick={handleSpellCheckRequest}>Send for Spell Check</button>
+          <div className="spell-check-result">
+            <strong>Spell Check Result:</strong>
+            <p>{spellCheckResult}</p>
+          </div>
+          <button onClick={() => setShowSpellCheckDialog(false)}>Close</button>
+
+        </SpellCheckDialog>
+      )}
+
     </Container>
   );
 }
@@ -141,4 +202,30 @@ const Container = styled.div`
       }
     }
   }
+`;
+const SpellCheckDialog = styled.div`
+  /* Style for the spell check dialog */
+
+  .close-button {
+    padding: 0.2rem 1rem; /* Adjust the padding to make the button smaller */
+    font-size: 1rem; /* Adjust the font size to make the text smaller */
+    background-color: #9a86f3;
+    border: none;
+    cursor: pointer;
+  }
+  
+  background-color: #fff;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 10%; /* Adjust the top value to change the vertical position */
+  left: 10%; /* Adjust the left value to change the horizontal position */
+  width: 80%; /* Adjust the width to change the size */
+  height: 80%; /* Adjust the height to change the size */
+  z-index: 999; /* Ensure it appears above other elements */
+  
+  /* ... (add more styles as needed) */
+
+  
 `;
