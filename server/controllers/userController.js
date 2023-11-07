@@ -1,6 +1,6 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
-
+const Group=require("../models/groupModel");
 module.exports.login = async (req, res, next) => {
   // try {
   //   const { username, password } = req.body;
@@ -112,3 +112,37 @@ module.exports.logOut = (req, res, next) => {
     next(ex);
   }
 };
+
+module.exports.getAllGroups=async (req,res,next)=>{
+  try{
+    const userId=req.params.id;
+    const gps=await Group.find({
+      groupMembers:{
+        $elemMatch:{
+          _id:userId
+        }
+      }
+    }).select([
+      "groupName",
+      "groupMembers",
+      "_id",
+    ]);
+
+    return res.json(gps);
+
+  }catch(ex){
+    next(ex);
+  }
+}
+module.exports.addGroup=async (req,res,next)=>{
+  try{
+    const {name,members}=req.body;
+    const group = await Group.create({
+      groupName:name,
+      groupMembers:members,
+    });
+    return res.json(group);
+  }catch(ex){
+    next(ex);
+  }
+}

@@ -3,24 +3,30 @@ import styled from "styled-components";
 import Logo from "../assets/logo.svg";
 import Logout from "./Logout";
 import {BsFillCheckSquareFill} from "react-icons/bs"
+import { addGroupRoute } from "../utils/APIRoutes";
+import axios from "axios";
 
-export default function Contacts({ contacts, changeChat }) {
+export default function Contacts({ contacts, changeChat,groups }) {
   const [currentUserName, setCurrentUserName] = useState(undefined);
   const [currentUserImage, setCurrentUserImage] = useState(undefined);
   const [currentUser,setCurrentUser]=useState(undefined);
   const [currentSelected, setCurrentSelected] = useState(undefined);
+  const [currentSelectedgrp, setCurrentSelectedgrp] = useState(undefined);
   const [isClicked,setIsClicked]=useState(false);
   const [selectedContacts, setSelectedContacts] = useState(new Map());
   const [addedContacts,setAddedContacts]=useState([]);
-  
-  useEffect(async () => {
+  const [groupName,setGroupName]=useState("");
+  useEffect(()=>{
+    const fun=async () => {
     const data = await JSON.parse(
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
     );
     setCurrentUserName(data.username);
     setCurrentUserImage(data.avatarImage);
     setCurrentUser(data);
-  }, []);
+  }
+  fun();
+}, []);
 
   useEffect(() => {
     const initialSelectedContacts = new Map();
@@ -28,14 +34,24 @@ export default function Contacts({ contacts, changeChat }) {
       initialSelectedContacts.set(contact, false); // Initially, no contacts are selected
     });
     setSelectedContacts(initialSelectedContacts);
-  }, [Contacts]);
+  }, [contacts,isClicked]);
   
   const changeCurrentChat = (index, contact) => {
     setCurrentSelected(index);
+    setCurrentSelectedgrp(undefined);
     changeChat(contact);
   };
-  const createGroup=(event)=>{
+  const changeCurrentChatgrp=(index,group)=>{
+    setCurrentSelectedgrp(index);
+    setCurrentSelected(undefined);
+    changeChat(group);
+  }
+  const createGroup=async (event)=>{
     event.preventDefault();
+    const {data}=await axios.post(addGroupRoute,{
+      name:groupName,
+      members:addedContacts,
+    })
     setIsClicked(false);
   }
   const toggleContactSelection = (contact) => {
@@ -48,6 +64,7 @@ export default function Contacts({ contacts, changeChat }) {
   const addtogrp=(contact)=>{
     toggleContactSelection(contact);
     setAddedContacts((previous) => [...previous, contact]);
+    //console.log(addedContacts);
     
   }
   return (
@@ -59,11 +76,28 @@ export default function Contacts({ contacts, changeChat }) {
           <div className="brand">
             <img src={Logo} alt="logo" />
             <h3>talkwave</h3>
-            <button onClick={()=>{setIsClicked(true);
+            <button onClick={()=>{setIsClicked(!isClicked);
             setAddedContacts([currentUser]);
             }}> + </button>
           </div>
           <div className="contacts">
+          {
+              groups.map((group,index)=>{
+                return(
+                  <div
+                  key={group._id}
+                  className={`contact ${
+                    index===currentSelectedgrp ? "selected" : ""
+                  }`}
+                  onClick={() => changeCurrentChatgrp(index, group)}
+                >
+                  <div className="username">
+                    <h3>{group.groupName}</h3>
+                  </div>
+                </div>
+                );
+              })
+            }
             {contacts.map((contact, index) => {
               return (
                 <div
@@ -84,7 +118,9 @@ export default function Contacts({ contacts, changeChat }) {
                   </div>
                 </div>
               );
-            })}
+            })
+            }
+            
           </div>
           <div className="current-user">
             <div className="avatar">
@@ -134,6 +170,8 @@ export default function Contacts({ contacts, changeChat }) {
               <input
                 type="text"
                 placeholder="Group Name"
+                value={groupName}
+                onChange={(event)=>setGroupName(event.target.value)}
               />
               <button type="submit">
               <BsFillCheckSquareFill/>

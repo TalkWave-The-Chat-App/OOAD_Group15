@@ -9,15 +9,45 @@ export default function ChatContainer({ currentChat, socket }) {
   const [messages, setMessages] = useState([]);
   const scrollRef = useRef();
   const [arrivalMessage, setArrivalMessage] = useState(null);
+  const [currentChatName,setCurrentChatName]=useState("");
+  const [currentChatimg,setCurrentChatimg]=useState("");
+  const peopleRef=useRef([]);
+  useEffect(()=>{
+    const fun=async()=>{
+    if(currentChat.username){
+      setCurrentChatName(currentChat.username);
+      setCurrentChatimg(currentChat.avatarImage);
+      const data = await JSON.parse(
+        localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
+      );
+      peopleRef.current=[data._id,currentChat._id];
+    }
+    else{
+      setCurrentChatName(currentChat.groupName);
+      setCurrentChatimg("");
+      const temp=currentChat.groupMembers.map((mem)=>mem._id);
+      console.log("temp");
+      console.log(temp);
+      peopleRef.current=temp;
+      console.log("people after setting people")
+      console.log(peopleRef);
+    }
+  }
+  fun();
+  },[currentChat])
 
   useEffect(async () => {
     const data = await JSON.parse(
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
     );
+    console.log("people from frontend after clicking chat");
+    console.log(peopleRef);
     const response = await axios.post(recieveMessageRoute, {
       from: data._id,
-      to: currentChat._id,
+      people:peopleRef,
     });
+    console.log("response:")
+    console.log(response);
     setMessages(response.data);
   }, [currentChat]);
 
@@ -41,9 +71,11 @@ export default function ChatContainer({ currentChat, socket }) {
       from: data._id,
       msg,
     });
+    console.log("people from frontend after sending messages");
+    console.log(peopleRef);
     await axios.post(sendMessageRoute, {
       from: data._id,
-      to: currentChat._id,
+      people:peopleRef,
       message: msg,
     });
 
@@ -74,12 +106,12 @@ export default function ChatContainer({ currentChat, socket }) {
         <div className="user-details">
           <div className="avatar">
             <img
-              src={`data:image/svg+xml;base64,${currentChat.avatarImage}`}
+              src={`data:image/svg+xml;base64,${currentChatimg}`}
               alt=""
             />
           </div>
           <div className="username">
-            <h3>{currentChat.username}</h3>
+            <h3>{currentChatName}</h3>
           </div>
         </div>
       </div>
@@ -93,7 +125,8 @@ export default function ChatContainer({ currentChat, socket }) {
                 }`}
               >
                 <div className="content ">
-                  <p>{message.message}</p>
+                  <p className="fkk">{message.sentby}</p>
+                  <p>{message.message}</p>  
                 </div>
               </div>
             </div>
@@ -161,6 +194,9 @@ const Container = styled.div`
         @media screen and (min-width: 720px) and (max-width: 1080px) {
           max-width: 70%;
         }
+      }
+      .fkk{
+        color:green;
       }
     }
     .sended {
