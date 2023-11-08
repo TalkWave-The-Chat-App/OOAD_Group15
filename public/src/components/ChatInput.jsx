@@ -30,9 +30,6 @@ export default function ChatInput({ handleSendMsg }) {
       setMsg("");
     }
   };
-  const updateSpellCheckResult = (result) => {
-    setSpellCheckResult(result);
-  };
 
   const handleSpellCheckRequest = () => {
     if (spellCheckInput.length > 0) {
@@ -51,6 +48,7 @@ export default function ChatInput({ handleSendMsg }) {
           // Update the msg state with the corrected text
           setMsg(data.correctedText);
           setSpellCheckResult(data.correctedText);
+          console.log(data.correctedText);
         })
         .catch((error) => {
           console.error("Error:", error);

@@ -7,7 +7,6 @@ import { allGroupsRoute, allUsersRoute, host } from "../utils/APIRoutes";
 import ChatContainer from "../components/ChatContainer";
 import Contacts from "../components/Contacts";
 import Welcome from "../components/Welcome";
-import { BiSolidHandLeft } from "react-icons/bi";
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -33,10 +32,14 @@ export default function Chat() {
 useEffect(()=>{
   const fun=async () => {
   if (currentUser) {
+    if(!currentUser.isAvatarImageSet){
+      navigate("/setAvatar");
+    }else{
       const data = await axios.get(`${allUsersRoute}/${currentUser._id}`);
       const grpdata=await axios.get(`${allGroupsRoute}/${currentUser._id}`);
       setContacts(data.data);
       setGroups(grpdata.data);
+    }
     } 
 }
 fun();
